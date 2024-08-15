@@ -3,8 +3,12 @@ package com.senacpi.gerenciador.controller;
 import com.senacpi.gerenciador.model.Comentarios;
 import com.senacpi.gerenciador.model.Equipamento;
 import com.senacpi.gerenciador.model.Dados;
+import com.senacpi.gerenciador.repository.ComentariosRepository;
+import com.senacpi.gerenciador.service.ComentariosService;
+import com.senacpi.gerenciador.service.EquipamentoService;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,6 +19,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class EquipamentoController {
+    
+    
+    @Autowired
+    EquipamentoService equipamentoService;
+    
+     @Autowired
+    ComentariosService comentarioService;
 
     @GetMapping("/inicio")
     public String inicio() {
@@ -34,9 +45,11 @@ public class EquipamentoController {
 
         if (equipamento.getId() != null) {
             //atualizando
-            Dados.editarEquipamento(equipamento);
+           // Dados.editarEquipamento(equipamento); -> add pra ir banco de dados
+           equipamentoService.atualizar(equipamento.getId(), equipamento);
         } else {
-            Dados.adicionarEquipamento(equipamento);
+           // Dados.adicionarEquipamento(equipamento);
+           equipamentoService.criar(equipamento);
 
         }
 
@@ -46,7 +59,7 @@ public class EquipamentoController {
 
     @GetMapping("/listagem")
     public String listagemEquipamentos(Model model) {
-        model.addAttribute("equipamentos", Dados.listarEquipamentos());
+        model.addAttribute("equipamentos", equipamentoService.buscarTodos());
         return "listagem";
 
     }
@@ -56,10 +69,10 @@ public class EquipamentoController {
         Integer idEquipamento = Integer.parseInt(id);
 
         Equipamento registroEncontrado = new Equipamento();
-        registroEncontrado = Dados.buscarEquipamento(idEquipamento);
+        registroEncontrado = equipamentoService.buscarPorId(idEquipamento);
 
         List<Comentarios> comentariosEncontrados = new ArrayList<>();
-        comentariosEncontrados = Dados.listarComentario(idEquipamento);
+        comentariosEncontrados = comentarioService.buscarTodosPeloIdEquipamento(idEquipamento);
 
         model.addAttribute("equipamento", registroEncontrado);
         model.addAttribute("comentario", new Comentarios());
@@ -70,14 +83,14 @@ public class EquipamentoController {
     @GetMapping("/excluir-equipamento")
     public String excluirEquipamento(Model model, @RequestParam String id) {
         Integer idEquipamento = Integer.parseInt(id);
-        Dados.exluirEquipamento(idEquipamento);
+        equipamentoService.excluir(idEquipamento);
         return "redirect:/listagem";
     }
 
     @GetMapping("/alterar-equipamento")
     public String alterarEquipamento(Model model, @RequestParam String id) {
         Integer idEquipamento = Integer.parseInt(id);
-        model.addAttribute("equipamento", Dados.buscarEquipamento(idEquipamento));
+        model.addAttribute("equipamento", equipamentoService.buscarPorId(idEquipamento));
         return "cadastro";
     }
 
